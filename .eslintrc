@@ -1,4 +1,5 @@
-    "env": {
+    {
+      "env": {
         "es2021": true,
         "node": true
     },
@@ -36,6 +37,7 @@
                 "js": "never",
                 "ts": "never"
             }
-        ]
-    },
+        ],
+        "no-underscore-dangle":  ["error", { "allow": ["_id"] }]
+    }
 }

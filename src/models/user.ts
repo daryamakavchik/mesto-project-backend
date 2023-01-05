@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -6,19 +6,19 @@ const userSchema = new mongoose.Schema({
     minlength: 2,
     maxlength: 30,
     default: 'Jacques Cousteau',
-    required: true
+    required: true,
   },
   about: {
     type: String,
     minlength: 2,
     maxlength: 30,
     default: 'Explorer',
-    required: true
+    required: true,
   },
   avatar: {
     type: String,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-export default mongoose.model('user', userSchema)
+export default mongoose.model('user', userSchema);
