@@ -25,14 +25,6 @@ const connectDb = async (): Promise<any> => {
 
 connectDb().catch((error) => console.error(error));
 
-app.use((req: IRequest, res: Response, next) => {
-  req.user = {
-    _id: '63b379b8ac6a6ffccb994945',
-  };
-
-  next();
-});
-
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.json());

@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
-import { STATUS_400, STATUS_404, STATUS_500 } from '../utils/constants';
+import {
+  STATUS_400, STATUS_403, STATUS_404, STATUS_500,
+} from '../utils/constants';
 import Card from '../models/card';
 
 interface IRequest extends Request {
@@ -30,10 +32,16 @@ export const createCard = (req: IRequest, res: Response): void => {
 };
 
 export const deleteCard = (req: IRequest, res: Response): void => {
+  const owner = req.user!._id;
   Card.findByIdAndRemove(req.params.cardId)
     .orFail(new Error('NotValidCardData'))
     .then((card) => {
-      res.send({ data: card });
+      if (String(card.owner) === owner) {
+        card.remove();
+        res.send({ message: 'Карточка успешно удалена' });
+      } else {
+        res.status(STATUS_403).send({ message: 'Карточки других пользователей не могут быть удалены' });
+      }
     })
     .catch((err) => {
       if (err.message === 'NotValidCardData') {
