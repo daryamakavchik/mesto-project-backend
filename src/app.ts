@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import bodyParser = require('body-parser');
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import { createUser, login } from './controllers/users';
 import router from './routes/cards';
 
 interface IRequest extends Request {
@@ -45,6 +46,8 @@ const limiter = rateLimit({
 app.use(limiter);
 app.use(helmet());
 app.use('/', router);
+app.post('/signin', login);
+app.post('/signup', createUser);
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
