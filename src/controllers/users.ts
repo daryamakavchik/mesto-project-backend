@@ -62,6 +62,25 @@ export const findUserById = (req: Request, res: Response): void => {
     });
 };
 
+export const getUserInfo = (req: IRequest, res: Response): void => {
+  User.findById(req.user!._id)
+    .orFail(new Error('NotValidUserData'))
+    .then((user) => res.send({ data: user }))
+    .catch((err) => {
+      if (err.message === 'NotValidUserData') {
+        res
+          .status(STATUS_404)
+          .send({ message: 'Пользователь по указанному _id не найден' });
+        return;
+      }
+      if (err.name === 'BadRequestError') {
+        res.status(STATUS_400).send({ message: 'Переданы некорректные данные при создании пользователя' });
+        return;
+      }
+      res.status(STATUS_500).send({ message: 'Произошла ошибка на сервере' });
+    });
+};
+
 export const updateUserInfo = (req: IRequest, res: Response): void => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
