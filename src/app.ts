@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import bodyParser = require('body-parser');
 import rateLimit from 'express-rate-limit';
@@ -11,6 +11,10 @@ interface IRequest extends Request {
   user?: {
     _id: string
   }
+}
+
+interface IError extends Error {
+  statusCode?: number
 }
 
 const { errors } = require('celebrate');
@@ -45,7 +49,7 @@ app.use(errors());
 app.use('/', router);
 app.post('/signin', login);
 app.post('/signup', createUser);
-app.use((err: any, req: Request, res: Response, next: any) => {
+app.use((err: IError, req: Request, res: Response, next: NextFunction) => {
   const { statusCode = 500, message } = err;
 
   res

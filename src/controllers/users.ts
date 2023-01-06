@@ -1,11 +1,11 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import BadRequestError from '../errors/bad-request-err';
 import UnauthorizedError from '../errors/unauthorized-err';
 import NotFoundError from '../errors/not-found-err';
 import ConflictError from '../errors/conflict-err';
 import { STATUS_500, STATUS_11000 } from '../utils/constants';
-import User from '../models/user';
+import User, { IUser } from '../models/user';
 
 const bcrypt = require('bcrypt');
 
@@ -15,22 +15,26 @@ interface IRequest extends Request {
   }
 }
 
+interface IError extends Error {
+  statusCode?: number
+}
+
 export const getAllUsers = (req: Request, res: Response): void => {
   User.find({})
     .then((user) => res.send({ data: user }))
     .catch(() => res.status(STATUS_500).send({ message: 'Произошла ошибка на сервере' }));
 };
 
-export const createUser = (req: Request, res: Response, next: any): void => {
+export const createUser = (req: IRequest, res: Response, next: NextFunction): void => {
   const {
     name, about, avatar, email, password,
   } = req.body;
   bcrypt.hash(password, 10)
-    .then((hash: any) => User.create({
+    .then((hash: string | number) => User.create({
       email, password: hash, name, about, avatar,
     }))
-    .then((user:any) => res.send({ data: user }))
-    .catch((err:any) => {
+    .then((user: IUser) => res.send({ data: user }))
+    .catch((err: IError) => {
       if (err.name === 'BadRequestError') {
         next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       }
@@ -41,7 +45,7 @@ export const createUser = (req: Request, res: Response, next: any): void => {
     });
 };
 
-export const findUserById = (req: Request, res: Response, next: any): void => {
+export const findUserById = (req: Request, res: Response, next: NextFunction): void => {
   User.findById(req.params.userId)
     .orFail(() => {
       throw next(new NotFoundError('Пользователь по указанному id не найден'));
@@ -58,7 +62,7 @@ export const findUserById = (req: Request, res: Response, next: any): void => {
     });
 };
 
-export const getUserInfo = (req: IRequest, res: Response, next: any): void => {
+export const getUserInfo = (req: IRequest, res: Response, next: NextFunction): void => {
   User.findById(req.user!._id)
     .orFail(() => {
       throw next(new NotFoundError('Пользователь по указанному id не найден'));
@@ -72,7 +76,7 @@ export const getUserInfo = (req: IRequest, res: Response, next: any): void => {
     });
 };
 
-export const updateUserInfo = (req: IRequest, res: Response, next: any): void => {
+export const updateUserInfo = (req: IRequest, res: Response, next: NextFunction): void => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
     req.user?._id,
@@ -100,7 +104,7 @@ export const updateUserInfo = (req: IRequest, res: Response, next: any): void =>
     });
 };
 
-export const updateUserAvatar = (req: IRequest, res: Response, next: any): void => {
+export const updateUserAvatar = (req: IRequest, res: Response, next: NextFunction): void => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(
     req.user?._id,
@@ -114,7 +118,7 @@ export const updateUserAvatar = (req: IRequest, res: Response, next: any): void 
     .orFail(() => {
       throw next(new NotFoundError('Пользователь по заданному id не найден'));
     })
-    .then((user:any) => {
+    .then((user) => {
       if (user !== null) {
         res.send({ data: user });
       }
@@ -128,10 +132,10 @@ export const updateUserAvatar = (req: IRequest, res: Response, next: any): void 
     });
 };
 
-export const login = (req: IRequest, res: Response, next: any) => {
+export const login = (req: IRequest, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
-    .then((user:any) => {
+    .then((user) => {
       const token = jwt.sign(
         { _id: user._id },
         'some-secret-key',

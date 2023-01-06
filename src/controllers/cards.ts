@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import BadRequestError from '../errors/bad-request-err';
 import NotFoundError from '../errors/not-found-err';
 import ForbiddenAccessError from '../errors/forbidden-access-err';
@@ -17,7 +17,7 @@ export const getAllCards = (req: IRequest, res: Response): void => {
     .catch(() => res.status(STATUS_500).send({ message: 'Произошла ошибка на сервере' }));
 };
 
-export const createCard = (req: IRequest, res: Response, next: any): void => {
+export const createCard = (req: IRequest, res: Response, next: NextFunction): void => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user?._id })
     .then((card) => res.send({ data: card }))
@@ -29,7 +29,7 @@ export const createCard = (req: IRequest, res: Response, next: any): void => {
     });
 };
 
-export const deleteCard = (req: IRequest, res: Response, next: any): void => {
+export const deleteCard = (req: IRequest, res: Response, next: NextFunction): void => {
   const owner = req.user!._id;
   Card.findByIdAndRemove(req.params.cardId)
     .orFail(() => {
@@ -51,7 +51,7 @@ export const deleteCard = (req: IRequest, res: Response, next: any): void => {
     });
 };
 
-export const likeCard = (req: IRequest, res: Response, next: any): void => {
+export const likeCard = (req: IRequest, res: Response, next: NextFunction): void => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user?._id } },
@@ -71,7 +71,7 @@ export const likeCard = (req: IRequest, res: Response, next: any): void => {
     });
 };
 
-export const dislikeCard = (req: IRequest, res: Response, next: any): void => {
+export const dislikeCard = (req: IRequest, res: Response, next: NextFunction): void => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user?._id } },
