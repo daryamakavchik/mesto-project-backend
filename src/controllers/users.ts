@@ -19,7 +19,7 @@ export const createUser = (req: Request, res: Response): void => {
   User.create({ name, about, avatar })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'BadRequestError') {
         res.status(STATUS_400).send({
           message: 'Переданы некорректные данные при создании пользователя',
         });
@@ -27,27 +27,28 @@ export const createUser = (req: Request, res: Response): void => {
       }
       res
         .status(STATUS_500)
-        .send({ message: 'Произошла ошибка при создании пользователя' });
+        .send({ message: 'Произошла ошибка на сервере' });
     });
 };
 
 export const findUserById = (req: Request, res: Response): void => {
   User.findById(req.params.userId)
+    .orFail(new Error('NotValidUserData'))
     .then((user) => {
-      if (user === null) {
+      res.send({ data: user });
+    })
+    .catch((err) => {
+      if (err.name === 'NotFoundError') {
         res
           .status(STATUS_404)
           .send({ message: 'Пользователь по указанному _id не найден' });
         return;
       }
-      res.send({ data: user });
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(STATUS_400).send({ message: 'Некорректный id пользователя' });
+      if (err.name === 'BadRequestError') {
+        res.status(STATUS_400).send({ message: 'Переданы некорректные данные при создании пользователя' });
         return;
       }
-      res.status(STATUS_500).send({ message: 'Произошла ошибка' });
+      res.status(STATUS_500).send({ message: 'Произошла ошибка на сервере' });
     });
 };
 
@@ -62,26 +63,24 @@ export const updateUserInfo = (req: IRequest, res: Response): void => {
       upsert: false,
     },
   )
+    .orFail(new Error('NotValidUserData'))
     .then((user) => {
       if (user !== null) {
         res.send({ data: user });
       }
-      if (user == null) {
-        res
-          .status(STATUS_404)
-          .send({ message: 'Пользователь с указанным _id не найден' });
-      }
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(STATUS_400).send({
-          message: 'Переданы некорректные данные при обновлении профиля',
-        });
+      if (err.name === 'NotFoundError') {
+        res
+          .status(STATUS_404)
+          .send({ message: 'Пользователь по указанному _id не найден' });
         return;
       }
-      res
-        .status(STATUS_500)
-        .send({ message: 'Произошла ошибка при создании пользователя' });
+      if (err.name === 'BadRequestError') {
+        res.status(STATUS_400).send({ message: 'Переданы некорректные данные при создании пользователя' });
+        return;
+      }
+      res.status(STATUS_500).send({ message: 'Произошла ошибка на сервере' });
     });
 };
 
@@ -96,23 +95,23 @@ export const updateUserAvatar = (req: IRequest, res: Response): void => {
       upsert: false,
     },
   )
+    .orFail(new Error('NotValidUserData'))
     .then((user) => {
       if (user !== null) {
         res.send({ data: user });
       }
-      if (user == null) {
-        res
-          .status(STATUS_404)
-          .send({ message: 'Пользователь с указанным _id не найден' });
-      }
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(STATUS_400).send({
-          message: 'Переданы некорректные данные при обновлении аватара',
-        });
+      if (err.name === 'NotFoundError') {
+        res
+          .status(STATUS_404)
+          .send({ message: 'Пользователь по указанному _id не найден' });
         return;
       }
-      res.status(STATUS_500).send({ message: 'Произошла ошибка' });
+      if (err.name === 'BadRequestError') {
+        res.status(STATUS_400).send({ message: 'Переданы некорректные данные при создании пользователя' });
+        return;
+      }
+      res.status(STATUS_500).send({ message: 'Произошла ошибка на сервере' });
     });
 };

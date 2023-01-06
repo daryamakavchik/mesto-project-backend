@@ -19,7 +19,7 @@ export const createCard = (req: IRequest, res: Response): void => {
   Card.create({ name, link, owner: req.user?._id })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'BadRequestError') {
         res.status(STATUS_400).send({
           message: 'Переданы некорректные данные при создании карточки',
         });
@@ -31,19 +31,14 @@ export const createCard = (req: IRequest, res: Response): void => {
 
 export const deleteCard = (req: IRequest, res: Response): void => {
   Card.findByIdAndRemove(req.params.cardId)
+    .orFail(new Error('NotValidCardData'))
     .then((card) => {
-      if (card === null) {
-        res
-          .status(STATUS_400)
-          .send({ message: 'Передан несуществующий _id карточки' });
-        return;
-      }
       res.send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(STATUS_400).send({
-          message: 'Переданы некорректные данные для удаления карточки',
+      if (err.name === 'NotFoundError') {
+        res.status(STATUS_404).send({
+          message: 'Передан несуществующий _id карточки',
         });
         return;
       }
@@ -57,19 +52,19 @@ export const likeCard = (req: IRequest, res: Response): void => {
     { $addToSet: { likes: req.user?._id } },
     { new: true },
   )
+    .orFail(new Error('NotValidCardData'))
     .then((card) => {
-      if (card === null) {
-        res
-          .status(STATUS_404)
-          .send({ message: 'Передан несуществующий _id карточки' });
-        return;
-      }
       res.send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'BadRequestError') {
         res.status(STATUS_400).send({
-          message: 'Переданы некорректные данные для постановки лайка',
+          message: 'Переданы некорректные данные для лайка карточки',
+        });
+        return;
+      } if (err.name === 'NotFoundError') {
+        res.status(STATUS_404).send({
+          message: 'Передан несуществующий _id карточки',
         });
         return;
       }
@@ -83,20 +78,20 @@ export const dislikeCard = (req: IRequest, res: Response): void => {
     { $pull: { likes: req.user?._id } },
     { new: true },
   )
+    .orFail(new Error('NotValidCardData'))
     .then((card) => {
-      if (card === null) {
-        res
-          .status(STATUS_404)
-          .send({ message: 'Передан несуществующий _id карточки' });
-        return;
-      }
       res.send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        res
-          .status(STATUS_400)
-          .send({ message: 'Переданы некорректные данные для снятия лайка' });
+      if (err.name === 'BadRequestError') {
+        res.status(STATUS_400).send({
+          message: 'Переданы некорректные данные для удаления карточки',
+        });
+        return;
+      } if (err.name === 'NotFoundError') {
+        res.status(STATUS_404).send({
+          message: 'Передан несуществующий _id карточки',
+        });
         return;
       }
       res.status(STATUS_500).send({ message: 'Произошла ошибка на сервере' });

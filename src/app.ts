@@ -1,6 +1,8 @@
 import express, { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import bodyParser = require('body-parser');
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 import router from './routes/cards';
 
 interface IRequest extends Request {
@@ -9,11 +11,10 @@ interface IRequest extends Request {
   }
 }
 
-const { PORT = 3000 } = process.env;
-
+const { PORT = 3000, LINK = 'mongodb://localhost:27017/mestodb' } = process.env;
 const app = express();
 const connectDb = async (): Promise<any> => {
-  await mongoose.connect('mongodb://localhost:27017/mestodb').then(
+  await mongoose.connect(LINK).then(
     () => {
       console.info('Connected to database');
     },
@@ -34,6 +35,15 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.json());
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
+app.use(helmet());
 app.use('/', router);
 
 app.listen(PORT, () => {
