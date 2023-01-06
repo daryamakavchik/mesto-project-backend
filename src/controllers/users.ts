@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
-import { STATUS_400, STATUS_404, STATUS_500 } from '../utils/constants';
+import jwt from 'jsonwebtoken';
+import {
+  STATUS_400, STATUS_401, STATUS_404, STATUS_500,
+} from '../utils/constants';
 import User from '../models/user';
 
 const bcrypt = require('bcrypt');
@@ -103,12 +106,12 @@ export const updateUserAvatar = (req: IRequest, res: Response): void => {
     },
   )
     .orFail(new Error('NotValidUserData'))
-    .then((user) => {
+    .then((user:any) => {
       if (user !== null) {
         res.send({ data: user });
       }
     })
-    .catch((err) => {
+    .catch((err:any) => {
       if (err.message === 'NotValidUserData') {
         res
           .status(STATUS_404)
@@ -120,5 +123,23 @@ export const updateUserAvatar = (req: IRequest, res: Response): void => {
         return;
       }
       res.status(STATUS_500).send({ message: 'Произошла ошибка на сервере' });
+    });
+};
+
+export const login = (req: IRequest, res: Response) => {
+  const { email, password } = req.body;
+  return User.findUserByCredentials(email, password)
+    .then((user:any) => {
+      const token = jwt.sign(
+        { _id: user._id },
+        'some-secret-key',
+        { expiresIn: '7d' },
+      );
+      res.send({ token });
+    })
+    .catch((err:any) => {
+      res
+        .status(STATUS_401)
+        .send({ message: err.message });
     });
 };
