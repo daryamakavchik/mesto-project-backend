@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { createUser, login } from './controllers/users';
 import router from './routes/cards';
+import auth from './middlewares/auth';
 
 interface IRequest extends Request {
   user?: {
@@ -45,6 +46,7 @@ const limiter = rateLimit({
 
 app.use(limiter);
 app.use(helmet());
+app.use(auth);
 app.use('/', router);
 app.post('/signin', login);
 app.post('/signup', createUser);

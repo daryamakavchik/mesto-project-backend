@@ -1,0 +1,31 @@
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import { Request, Response, NextFunction } from 'express';
+import { STATUS_401 } from '../utils/constants';
+
+interface SessionRequest extends Request {
+  user?: string | JwtPayload;
+}
+
+/* eslint-disable consistent-return */
+export default (req: SessionRequest, res: Response, next: NextFunction) => {
+  const { authorization } = req.headers;
+  if (!authorization || !authorization.startsWith('Bearer ')) {
+    return res
+      .status(401)
+      .send({ message: 'Необходима авторизация' });
+  }
+
+  const token = authorization.replace('Bearer ', '');
+  let payload;
+
+  try {
+    payload = jwt.verify(token, 'some-secret-key');
+  } catch (err) {
+    return res
+      .status(STATUS_401)
+      .send({ message: 'Необходима авторизация' });
+  }
+
+  req.user = payload;
+  next();
+};
