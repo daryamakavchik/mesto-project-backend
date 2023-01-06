@@ -38,7 +38,7 @@ export const findUserById = (req: Request, res: Response): void => {
       res.send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'NotFoundError') {
+      if (err.message === 'NotValidUserData') {
         res
           .status(STATUS_404)
           .send({ message: 'Пользователь по указанному _id не найден' });
@@ -70,7 +70,7 @@ export const updateUserInfo = (req: IRequest, res: Response): void => {
       }
     })
     .catch((err) => {
-      if (err.name === 'NotFoundError') {
+      if (err.message === 'NotValidUserData') {
         res
           .status(STATUS_404)
           .send({ message: 'Пользователь по указанному _id не найден' });
@@ -102,7 +102,7 @@ export const updateUserAvatar = (req: IRequest, res: Response): void => {
       }
     })
     .catch((err) => {
-      if (err.name === 'NotFoundError') {
+      if (err.message === 'NotValidUserData') {
         res
           .status(STATUS_404)
           .send({ message: 'Пользователь по указанному _id не найден' });

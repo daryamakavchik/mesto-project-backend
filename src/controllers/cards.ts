@@ -36,7 +36,7 @@ export const deleteCard = (req: IRequest, res: Response): void => {
       res.send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'NotFoundError') {
+      if (err.message === 'NotValidCardData') {
         res.status(STATUS_404).send({
           message: 'Передан несуществующий _id карточки',
         });
@@ -57,14 +57,15 @@ export const likeCard = (req: IRequest, res: Response): void => {
       res.send({ data: card });
     })
     .catch((err) => {
+      if (err.message === 'NotValidCardData') {
+        res.status(STATUS_404).send({
+          message: 'Передан несуществующий _id карточки',
+        });
+        return;
+      }
       if (err.name === 'BadRequestError') {
         res.status(STATUS_400).send({
           message: 'Переданы некорректные данные для лайка карточки',
-        });
-        return;
-      } if (err.name === 'NotFoundError') {
-        res.status(STATUS_404).send({
-          message: 'Передан несуществующий _id карточки',
         });
         return;
       }
@@ -83,14 +84,15 @@ export const dislikeCard = (req: IRequest, res: Response): void => {
       res.send({ data: card });
     })
     .catch((err) => {
+      if (err.name === 'NotValidCardData') {
+        res.status(STATUS_404).send({
+          message: 'Передан несуществующий _id карточки',
+        });
+        return;
+      }
       if (err.name === 'BadRequestError') {
         res.status(STATUS_400).send({
           message: 'Переданы некорректные данные для удаления карточки',
-        });
-        return;
-      } if (err.name === 'NotFoundError') {
-        res.status(STATUS_404).send({
-          message: 'Передан несуществующий _id карточки',
         });
         return;
       }
