@@ -37,6 +37,7 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
+    "@types/validator": "^13.7.10",
     "body-parser": "^1.20.1",
     "express": "^4.18.2",
     "express-rate-limit": "^6.7.0",
@@ -44,6 +45,7 @@
     "mongodb": "^4.13.0",
     "mongoose": "^6.8.2",
     "node-fetch": "^2.6.7",
-    "nodemon": "^2.0.20"
+    "nodemon": "^2.0.20",
+    "validator": "^13.7.0"
   }
 }
