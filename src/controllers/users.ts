@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { STATUS_400, STATUS_404, STATUS_500 } from '../utils/constants';
 import User from '../models/user';
 
+const bcrypt = require('bcrypt');
+
 interface IRequest extends Request {
   user?: {
     _id: string
@@ -15,10 +17,15 @@ export const getAllUsers = (req: Request, res: Response): void => {
 };
 
 export const createUser = (req: Request, res: Response): void => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then((user) => res.send({ data: user }))
-    .catch((err) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+  bcrypt.hash(password, 10)
+    .then((hash: any) => User.create({
+      email, password: hash, name, about, avatar,
+    }))
+    .then((user:any) => res.send({ data: user }))
+    .catch((err:any) => {
       if (err.name === 'BadRequestError') {
         res.status(STATUS_400).send({
           message: 'Переданы некорректные данные при создании пользователя',
