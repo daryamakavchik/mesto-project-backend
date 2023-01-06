@@ -1,8 +1,10 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import {
-  STATUS_400, STATUS_401, STATUS_404, STATUS_500,
-} from '../utils/constants';
+import BadRequestError from '../errors/bad-request-err';
+import UnauthorizedError from '../errors/unauthorized-err';
+import NotFoundError from '../errors/not-found-err';
+import ConflictError from '../errors/conflict-err';
+import { STATUS_500, STATUS_11000 } from '../utils/constants';
 import User from '../models/user';
 
 const bcrypt = require('bcrypt');
@@ -19,7 +21,7 @@ export const getAllUsers = (req: Request, res: Response): void => {
     .catch(() => res.status(STATUS_500).send({ message: 'Произошла ошибка на сервере' }));
 };
 
-export const createUser = (req: Request, res: Response): void => {
+export const createUser = (req: Request, res: Response, next: any): void => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -30,58 +32,47 @@ export const createUser = (req: Request, res: Response): void => {
     .then((user:any) => res.send({ data: user }))
     .catch((err:any) => {
       if (err.name === 'BadRequestError') {
-        res.status(STATUS_400).send({
-          message: 'Переданы некорректные данные при создании пользователя',
-        });
-        return;
+        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       }
-      res
-        .status(STATUS_500)
-        .send({ message: 'Произошла ошибка на сервере' });
+      if (err.name === 'ConflictError' || err.statusCode === STATUS_11000) {
+        throw next(new ConflictError('Пользователь с таким email уже существует'));
+      }
+      next(err);
     });
 };
 
-export const findUserById = (req: Request, res: Response): void => {
+export const findUserById = (req: Request, res: Response, next: any): void => {
   User.findById(req.params.userId)
-    .orFail(new Error('NotValidUserData'))
+    .orFail(() => {
+      throw next(new NotFoundError('Пользователь по указанному id не найден'));
+    })
     .then((user) => {
       res.send({ data: user });
     })
     .catch((err) => {
-      if (err.message === 'NotValidUserData') {
-        res
-          .status(STATUS_404)
-          .send({ message: 'Пользователь по указанному _id не найден' });
-        return;
+      if (err.kind === 'ObjectId') {
+        next(new BadRequestError('Неверный формат id'));
+      } else {
+        next(err);
       }
-      if (err.name === 'BadRequestError') {
-        res.status(STATUS_400).send({ message: 'Переданы некорректные данные при создании пользователя' });
-        return;
-      }
-      res.status(STATUS_500).send({ message: 'Произошла ошибка на сервере' });
     });
 };
 
-export const getUserInfo = (req: IRequest, res: Response): void => {
+export const getUserInfo = (req: IRequest, res: Response, next: any): void => {
   User.findById(req.user!._id)
-    .orFail(new Error('NotValidUserData'))
+    .orFail(() => {
+      throw next(new NotFoundError('Пользователь по указанному id не найден'));
+    })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.message === 'NotValidUserData') {
-        res
-          .status(STATUS_404)
-          .send({ message: 'Пользователь по указанному _id не найден' });
-        return;
+      if (err.kind === 'ObjectId') {
+        next(new BadRequestError('Неверный формат id'));
       }
-      if (err.name === 'BadRequestError') {
-        res.status(STATUS_400).send({ message: 'Переданы некорректные данные при создании пользователя' });
-        return;
-      }
-      res.status(STATUS_500).send({ message: 'Произошла ошибка на сервере' });
+      next(err);
     });
 };
 
-export const updateUserInfo = (req: IRequest, res: Response): void => {
+export const updateUserInfo = (req: IRequest, res: Response, next: any): void => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
     req.user?._id,
@@ -92,28 +83,24 @@ export const updateUserInfo = (req: IRequest, res: Response): void => {
       upsert: false,
     },
   )
-    .orFail(new Error('NotValidUserData'))
+    .orFail(() => {
+      throw next(new NotFoundError('Пользователь по указанному id не найден'));
+    })
     .then((user) => {
       if (user !== null) {
         res.send({ data: user });
       }
     })
     .catch((err) => {
-      if (err.message === 'NotValidUserData') {
-        res
-          .status(STATUS_404)
-          .send({ message: 'Пользователь по указанному _id не найден' });
-        return;
-      }
       if (err.name === 'BadRequestError') {
-        res.status(STATUS_400).send({ message: 'Переданы некорректные данные при создании пользователя' });
-        return;
+        next(new BadRequestError('Переданы некорректные данные при обновлении профиля'));
+      } else {
+        next(err);
       }
-      res.status(STATUS_500).send({ message: 'Произошла ошибка на сервере' });
     });
 };
 
-export const updateUserAvatar = (req: IRequest, res: Response): void => {
+export const updateUserAvatar = (req: IRequest, res: Response, next: any): void => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(
     req.user?._id,
@@ -124,28 +111,24 @@ export const updateUserAvatar = (req: IRequest, res: Response): void => {
       upsert: false,
     },
   )
-    .orFail(new Error('NotValidUserData'))
+    .orFail(() => {
+      throw next(new NotFoundError('Пользователь по заданному id не найден'));
+    })
     .then((user:any) => {
       if (user !== null) {
         res.send({ data: user });
       }
     })
-    .catch((err:any) => {
-      if (err.message === 'NotValidUserData') {
-        res
-          .status(STATUS_404)
-          .send({ message: 'Пользователь по указанному _id не найден' });
-        return;
-      }
+    .catch((err) => {
       if (err.name === 'BadRequestError') {
-        res.status(STATUS_400).send({ message: 'Переданы некорректные данные при создании пользователя' });
-        return;
+        next(new BadRequestError('Переданы некорректные данные при обновлении аватара'));
+      } else {
+        next(err);
       }
-      res.status(STATUS_500).send({ message: 'Произошла ошибка на сервере' });
     });
 };
 
-export const login = (req: IRequest, res: Response) => {
+export const login = (req: IRequest, res: Response, next: any) => {
   const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
     .then((user:any) => {
@@ -156,9 +139,12 @@ export const login = (req: IRequest, res: Response) => {
       );
       res.send({ token });
     })
-    .catch((err:any) => {
-      res
-        .status(STATUS_401)
-        .send({ message: err.message });
+    .catch((err) => {
+      if (err.name === 'BadRequestError') {
+        next(new BadRequestError('Оба поля должны быть заполнены'));
+      } else {
+        next(new UnauthorizedError('Передан неккоректный email'));
+      }
+      next(err);
     });
 };

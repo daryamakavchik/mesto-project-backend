@@ -1,4 +1,5 @@
 import mongoose, { Model, Document } from 'mongoose';
+import UnauthorizedError from '../errors/unauthorized-err';
 
 const bcrypt = require('bcrypt');
 const isEmailValidator = require('validator').isEmail;
@@ -49,14 +50,14 @@ const userSchema = new mongoose.Schema<IUser, UserModel>({
   },
 });
 
-userSchema.static('findUserByCredentials', function findUserByCredentials(email: string, password: string) {
+userSchema.static('findUserByCredentials', function findUserByCredentials(email: string, password: string, next) {
   return this.findOne({ email }).select('+password').then((user:any) => {
     if (!user) {
       return Promise.reject(new Error('Неправильные почта или пароль'));
     }
     return bcrypt.compare(password, user.password).then((matched:any) => {
       if (!matched) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+        next(new UnauthorizedError('Передан неккоректный пароль'));
       }
       return user;
     });
