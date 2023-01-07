@@ -6,21 +6,21 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "npx eslint src/**/*.ts",
-    "start": "ts-node-dev /Users/daryamakauchyk/Desktop/mesto-backend/src/app.ts",
+    "start": "ts-node-dev ./src/app.ts",
     "build": "tsc --build",
     "clean": "tsc --build --clean",
-    "dev": "nodemon /Users/daryamakauchyk/Desktop/mesto-backend/src/app.ts"
+    "dev": "nodemon ./src/app.ts"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/daryamakavchik/mesto-backend.git"
+    "url": "git+https://github.com/daryamakavchik/mesto-project-plus.git"
   },
   "author": "Darya Makavchik",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/daryamakavchik/mesto-backend/issues"
+    "url": "https://github.com/daryamakavchik/mesto-project-plus/issues"
   },
-  "homepage": "https://github.com/daryamakavchik/mesto-backend#readme",
+  "homepage": "https://github.com/daryamakavchik/mesto-project-plus#readme",
   "devDependencies": {
     "@types/express": "^4.17.15",
     "@types/jsonwebtoken": "^9.0.0",

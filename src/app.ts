@@ -1,4 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
+import Joi = require('joi');
+import { celebrate } from 'celebrate';
 import mongoose from 'mongoose';
 import bodyParser = require('body-parser');
 import rateLimit from 'express-rate-limit';
@@ -39,11 +41,24 @@ const limiter = rateLimit({
 
 app.use(limiter);
 app.use(helmet());
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required(),
+    password: Joi.string().required(),
+  }),
+}), login);
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required(),
+    password: Joi.string().required(),
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string(),
+  }),
+}), createUser);
 app.use(auth);
 app.use(errors());
 app.use('/', router);
-app.post('/signin', login);
-app.post('/signup', createUser);
 app.use((err: IError, req: Request, res: Response, next: NextFunction) => {
   const { statusCode = STATUS_500, message } = err;
   res
