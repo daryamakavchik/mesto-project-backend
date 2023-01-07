@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import bodyParser = require('body-parser');
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import { requestLogger, errorLogger } from './middlewares/logger';
 import { STATUS_500 } from './utils/constants';
 import { createUser, login } from './controllers/users';
 import router from './routes/cards';
@@ -41,6 +42,7 @@ const limiter = rateLimit({
 
 app.use(limiter);
 app.use(helmet());
+app.use(requestLogger);
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required(),
@@ -57,6 +59,7 @@ app.post('/signup', celebrate({
   }),
 }), createUser);
 app.use(auth);
+app.use(errorLogger);
 app.use(errors());
 app.use('/', router);
 app.use((err: IError, req: Request, res: Response, next: NextFunction) => {
