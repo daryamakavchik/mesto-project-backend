@@ -1,19 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { IRequest } from '../types/index';
 import BadRequestError from '../errors/bad-request-err';
 import UnauthorizedError from '../errors/unauthorized-err';
 import NotFoundError from '../errors/not-found-err';
 import ConflictError from '../errors/conflict-err';
-import { STATUS_500, STATUS_11000 } from '../utils/constants';
+import { STATUS_500, STATUS_11000, SECRET_KEY } from '../utils/constants';
 import User, { IUser } from '../models/user';
 
 const bcrypt = require('bcrypt');
-
-interface IRequest extends Request {
-  user?: {
-    _id: string
-  }
-}
 
 interface IError extends Error {
   statusCode?: number
@@ -138,7 +133,7 @@ export const login = (req: IRequest, res: Response, next: NextFunction) => {
     .then((user) => {
       const token = jwt.sign(
         { _id: user._id },
-        'some-secret-key',
+        SECRET_KEY,
         { expiresIn: '7d' },
       );
       res.send({ token });

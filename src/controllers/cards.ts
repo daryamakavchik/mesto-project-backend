@@ -1,15 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
+import { IRequest } from '../types/index';
 import BadRequestError from '../errors/bad-request-err';
 import NotFoundError from '../errors/not-found-err';
 import ForbiddenAccessError from '../errors/forbidden-access-err';
 import { STATUS_500 } from '../utils/constants';
 import Card from '../models/card';
-
-interface IRequest extends Request {
-  user?: {
-    _id: string
-  }
-}
 
 export const getAllCards = (req: IRequest, res: Response): void => {
   Card.find({})

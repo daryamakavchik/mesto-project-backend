@@ -1,6 +1,6 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
-import { STATUS_401 } from '../utils/constants';
+import { SECRET_KEY, STATUS_401 } from '../utils/constants';
 
 interface SessionRequest extends Request {
   user?: string | JwtPayload;
@@ -19,7 +19,7 @@ export default (req: SessionRequest, res: Response, next: NextFunction) => {
   let payload;
 
   try {
-    payload = jwt.verify(token, 'some-secret-key');
+    payload = jwt.verify(token, SECRET_KEY);
   } catch (err) {
     return res
       .status(STATUS_401)

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import Joi from 'joi';
 import { celebrate } from 'celebrate';
+import { linkRegex } from '../utils/constants';
 import {
   getAllUsers,
   findUserById,
@@ -31,7 +32,7 @@ router.patch('/users/me', celebrate({
 router.patch('/users/me/avatar', celebrate({
   body: Joi.object().keys({
     /* eslint-disable-next-line */
-    avatar: Joi.string().pattern(new RegExp('^((http|https):\/\/)?(www\.)?([A-Za-zА-Яа-я0-9]{1}[A-Za-zА-Яа-я0-9\-]*\.?)*\.{1}[A-Za-zА-Яа-я0-9-]{2,8}(\/([\w#!:.?+=&%@!\-\/])*)?')),
+    avatar: Joi.string().pattern(new RegExp(`${linkRegex}`)),
   }),
 }), updateUserAvatar);
 

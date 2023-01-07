@@ -5,10 +5,13 @@ import mongoose from 'mongoose';
 import bodyParser = require('body-parser');
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import {
+  PORT, LINK, STATUS_500, STATUS_404, linkRegex,
+} from './utils/constants';
 import { requestLogger, errorLogger } from './middlewares/logger';
-import { STATUS_500 } from './utils/constants';
 import { createUser, login } from './controllers/users';
-import router from './routes/cards';
+import cardsRouter from './routes/cards';
+import usersRouter from './routes/users';
 import auth from './middlewares/auth';
 
 interface IError extends Error {
@@ -17,7 +20,22 @@ interface IError extends Error {
 
 const { errors } = require('celebrate');
 
-const { PORT = 3000, LINK = 'mongodb://localhost:27017/mestodb' } = process.env;
+const validateLogin = celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
+  }),
+});
+const validateSignUp = celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required(),
+    password: Joi.string().required(),
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().pattern(linkRegex),
+  }),
+});
+
 const app = express();
 const connectDb = async (): Promise<any> => {
   await mongoose.connect(LINK).then(
@@ -43,33 +61,24 @@ const limiter = rateLimit({
 app.use(limiter);
 app.use(helmet());
 app.use(requestLogger);
-app.post('/signin', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required(),
-    password: Joi.string().required(),
-  }),
-}), login);
-app.post('/signup', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required(),
-    password: Joi.string().required(),
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
-    avatar: Joi.string(),
-  }),
-}), createUser);
+app.post('/signin', validateLogin, login);
+app.post('/signup', validateSignUp, createUser);
 app.use(auth);
+app.use('/users', usersRouter);
+app.use('/cards', cardsRouter);
 app.use(errorLogger);
 app.use(errors());
-app.use('/', router);
 app.use((err: IError, req: Request, res: Response, next: NextFunction) => {
   const { statusCode = STATUS_500, message } = err;
   res
     .status(statusCode)
     .send({
+      /* eslint-disable-next-line no-nested-ternary */
       message: statusCode === STATUS_500
         ? 'Произошла ошибка на сервере'
-        : message,
+        : statusCode === STATUS_404
+          ? 'Маршрут не найден'
+          : message,
     });
 });
 

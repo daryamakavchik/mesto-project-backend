@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { ObjectId } from 'mongodb';
+import { linkRegex } from '../utils/constants';
 
 const cardSchema = new mongoose.Schema({
   name: {
@@ -25,5 +26,10 @@ const cardSchema = new mongoose.Schema({
     default: Date.now(),
   },
 });
+
+cardSchema.path('link').validate((val) => {
+  const urlRegex = linkRegex;
+  return urlRegex.test(val);
+}, 'Некорректный URL.');
 
 export default mongoose.model('card', cardSchema);
