@@ -1,6 +1,6 @@
   {
     "compilerOptions": {
-      "typeRoots": ["src/types"],
+      "typeRoots": ["src/types", "./node_modules/@types"],
       /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
       "target": "es6",
       /* Modules */

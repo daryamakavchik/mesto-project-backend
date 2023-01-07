@@ -3,15 +3,10 @@ import mongoose from 'mongoose';
 import bodyParser = require('body-parser');
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import { STATUS_500 } from './utils/constants';
 import { createUser, login } from './controllers/users';
 import router from './routes/cards';
 import auth from './middlewares/auth';
-
-interface IRequest extends Request {
-  user?: {
-    _id: string
-  }
-}
 
 interface IError extends Error {
   statusCode?: number
@@ -50,12 +45,11 @@ app.use('/', router);
 app.post('/signin', login);
 app.post('/signup', createUser);
 app.use((err: IError, req: Request, res: Response, next: NextFunction) => {
-  const { statusCode = 500, message } = err;
-
+  const { statusCode = STATUS_500, message } = err;
   res
     .status(statusCode)
     .send({
-      message: statusCode === 500
+      message: statusCode === STATUS_500
         ? 'Произошла ошибка на сервере'
         : message,
     });
