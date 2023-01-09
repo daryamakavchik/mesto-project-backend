@@ -1,4 +1,5 @@
 import mongoose, { Model, Document } from 'mongoose';
+import { linkRegex } from '../utils/constants';
 import UnauthorizedError from '../errors/unauthorized-err';
 
 const bcrypt = require('bcrypt');
@@ -32,6 +33,12 @@ const userSchema = new mongoose.Schema<IUser, UserModel>({
   avatar: {
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    validate: {
+      validator(value: string) {
+        return linkRegex.test(value);
+      },
+      message: 'Невалидный URL',
+    },
   },
   email: {
     type: String,

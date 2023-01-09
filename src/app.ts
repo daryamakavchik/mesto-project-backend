@@ -28,7 +28,7 @@ const validateLogin = celebrate({
 });
 const validateSignUp = celebrate({
   body: Joi.object().keys({
-    email: Joi.string().required(),
+    email: Joi.string().required().email(),
     password: Joi.string().required(),
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
@@ -66,6 +66,7 @@ app.post('/signup', validateSignUp, createUser);
 app.use(auth);
 app.use('/users', usersRouter);
 app.use('/cards', cardsRouter);
+app.all('/*', (req, res) => res.status(404).json({ message: 'Страница не существует' }));
 app.use(errorLogger);
 app.use(errors());
 app.use((err: IError, req: Request, res: Response, next: NextFunction) => {
@@ -73,12 +74,9 @@ app.use((err: IError, req: Request, res: Response, next: NextFunction) => {
   res
     .status(statusCode)
     .send({
-      /* eslint-disable-next-line no-nested-ternary */
       message: statusCode === STATUS_500
         ? 'Произошла ошибка на сервере'
-        : statusCode === STATUS_404
-          ? 'Маршрут не найден'
-          : message,
+        : message,
     });
 });
 
