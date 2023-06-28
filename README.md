@@ -1,8 +1,8 @@
 # Mesto Backend #
 
-## Description 
-
 [Frontend part](https://github.com/daryamakavchik/mesto-project-pair) was implemented together with @yansadykov.
+
+## Description 
 "Mesto Backend" is a portfolio project created as an assignment for [Yandex.Practicum](https://practicum.yandex.com/web/ "Web Development Program"). It features authorization and registration, operations with cards and updating user data.
 
 ## Functionality:
@@ -28,6 +28,20 @@
 
 ## Installation
 
-`npm run start` — run server  
-`npm run dev` — run server with hot-reload
+```bash
+# Clone the repository
+git clone https://daryamakavchik.github.io/mesto-project-backend/
+# Enter the project directory
+cd mesto-project-backend
+# install dependencies
+npm install
+# build in production
+npm run build
+# start testing the application
+npm run test
+# run the server on localhost:3000
+npm run start
+# run the server with hot reload
+npm run dev
+```
 
