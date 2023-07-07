@@ -7,14 +7,14 @@
 
 ## Functionality:
 
-- Registration;
-- Authorization;
-- Avatar editing;
-- Profile editing;
-- Adding a new photo;
-- Deleting a card;
-- Adding/removing like;
-- Opening photos in full size.
+- registration
+- authorization
+- avatar editing
+- profile editing
+- adding a new photo
+- deleting a card
+- adding/removing like
+- opening photos in full size
 
 ## Tech stack:
 
